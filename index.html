@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Секретная миссия НЕ: слитно или раздельно?</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e3a8a 100%);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .title-font {
+            font-family: 'Comfortaa', cursive;
+        }
+        /* Floating background magical particles */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+            100% { transform: translateY(0px) rotate(360deg); opacity: 0.3; }
+        }
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+        /* Pulse glow animation for buttons and keys */
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.9), 0 0 45px rgba(168, 85, 247, 0.6); }
+        }
+        .glow-effect {
+            animation: glow 2.5s infinite;
+        }
+        /* Magnifying glass lens effect */
+        .magnifier-lens {
+            position: relative;
+            cursor: zoom-in;
+        }
+        .magnifier-lens:hover::after {
+            content: '';
+            position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border: 3px dashed #fbbf24;
+            border-radius: 12px;
+            pointer-events: none;
+            animation: pulse 1s infinite;
+        }
+        /* Confetti piece styles */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f;
+            opacity: 0.8;
+            animation: fall 3s linear forwards;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative select-none">
+
+    <!-- Magical Background Decorative Particles -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0" id="particles-container">
+        <!-- Generated dynamically via JS -->
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="w-full max-w-5xl mx-auto p-4 flex justify-between items-center z-10">
+        <div class="flex items-center space-x-3 bg-indigo-950/80 border border-indigo-500/40 px-4 py-2 rounded-2xl backdrop-blur-md shadow-lg">
+            <span class="text-2xl animate-bounce">🤖</span>
+            <div>
+                <h1 class="title-font text-lg font-bold text-yellow-300">Секретная миссия НЕ</h1>
+                <p class="text-xs text-indigo-300">5 класс • Русский язык</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <!-- Sound Toggle Button -->
+            <button id="sound-toggle" onclick="toggleSound()" class="bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-500/40 text-white p-3 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center justify-center" title="Включить/Выключить звук">
+                <span id="sound-icon" class="text-xl">🔊</span>
+            </button>
+
+            <!-- Fullscreen Button -->
+            <button onclick="toggleFullScreen()" class="bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-500/40 text-white p-3 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center justify-center" title="Полноэкранный режим">
+                <span class="text-xl">⛶</span>
+            </button>
+
+            <!-- Global Timer Display -->
+            <div id="timer-box" class="hidden bg-indigo-950/90 border border-amber-500/50 px-4 py-2 rounded-2xl backdrop-blur-md shadow-lg flex items-center space-x-2">
+                <span class="text-xl">⏳</span>
+                <div>
+                    <div class="text-[10px] uppercase text-amber-300 font-bold tracking-wider">Общее время</div>
+                    <div id="global-timer" class="title-font text-lg font-extrabold text-white">05:00</div>
+                </div>
+            </div>
+
+            <!-- Score Display -->
+            <div id="score-box" class="hidden bg-indigo-950/90 border border-emerald-500/50 px-4 py-2 rounded-2xl backdrop-blur-md shadow-lg flex items-center space-x-2">
+                <span class="text-xl">⭐</span>
+                <div>
+                    <div class="text-[10px] uppercase text-emerald-300 font-bold tracking-wider">Баллы</div>
+                    <div id="score-display" class="title-font text-lg font-extrabold text-white">0</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-4xl mx-auto px-4 py-6 flex-grow flex flex-col justify-center items-center z-10">
+
+        <!-- ================= SCREEN 0: WELCOME & BRIEFING ================= -->
+        <section id="screen-welcome" class="w-full bg-slate-900/80 border-2 border-indigo-500/50 rounded-3xl p-8 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center">
+            <div class="w-24 h-24 bg-gradient-to-tr from-amber-500 to-purple-600 rounded-3xl flex items-center justify-center text-5xl shadow-xl glow-effect mb-6">
+                🗝️
+            </div>
+            <h2 class="title-font text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-teal-300 to-purple-300 mb-4">
+                Секретная миссия НЕ: слитно или раздельно?
+            </h2>
+            <p class="text-indigo-200 text-base md:text-lg max-w-2xl mb-8 leading-relaxed">
+                Злой волшебник <span class="text-amber-400 font-bold">Перепутайка</span> заколдовал слова с частицей НЕ в волшебной стране Орфографии! Жители больше не знают правил правописания. Помоги роботу <span class="text-teal-300 font-bold">НЕзнайке</span> пройти 4 испытания, победить Перепутайку и собрать все золотые ключи!
+            </p>
+
+            <!-- NEznayka Speech Bubble -->
+            <div class="bg-indigo-950/90 border border-teal-500/40 rounded-2xl p-4 max-w-lg mb-8 flex items-start space-x-4 shadow-lg text-left">
+                <div class="text-4xl bg-indigo-900 p-2 rounded-xl">🤖</div>
+                <div>
+                    <div class="font-bold text-teal-300 text-sm">Робот НЕзнайка подсказывает:</div>
+                    <p class="text-indigo-100 text-sm mt-1">«Привет, друг! Наша миссия ограничена общим временем в 5 минут (300 секунд). Будь внимателен, собирай ключи и стань Мастером орфографии!»</p>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="title-font px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-indigo-950 font-extrabold text-xl rounded-2xl shadow-xl transform hover:scale-105 transition flex items-center space-x-3 glow-effect">
+                <span>🚀 Начать игру</span>
+            </button>
+        </section>
+
+        <!-- ================= SCREEN 1: REMEMBER THE RULE (30s) ================= -->
+        <section id="screen-stage1" class="w-full bg-slate-900/80 border-2 border-indigo-500/50 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl hidden flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <span class="bg-indigo-950 text-indigo-300 border border-indigo-500/40 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Этап 1 из 4</span>
+                    <h3 class="title-font text-2xl font-bold text-amber-300 mt-2">«Вспомни правило»</h3>
+                </div>
+                <div class="bg-indigo-950/80 border border-indigo-500/40 px-3 py-1.5 rounded-xl text-sm font-bold text-amber-200">
+                    ⏱️ <span id="stage1-timer">30</span> сек
+                </div>
+            </div>
+
+            <p class="text-indigo-200 text-sm md:text-base mb-6">Внимательно изучи основные правила правописания НЕ с именами существительными перед началом испытаний:</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-indigo-950/90 border border-indigo-500/30 rounded-2xl p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="text-amber-400 font-bold text-lg mb-2">Правило 1</div>
+                        <p class="text-indigo-100 text-sm">НЕ пишется <strong class="text-teal-300">слитно</strong>, если слово без НЕ не употребляется.</p>
+                    </div>
+                    <div class="mt-4 bg-indigo-900/60 p-2 rounded-xl text-xs text-amber-200 font-semibold">
+                        Примеры: ненастье, невежда, ненависть.
+                    </div>
+                </div>
+
+                <div class="bg-indigo-950/90 border border-indigo-500/30 rounded-2xl p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="text-amber-400 font-bold text-lg mb-2">Правило 2</div>
+                        <p class="text-indigo-100 text-sm">НЕ пишется <strong class="text-teal-300">слитно</strong>, если слово можно заменить синонимом без НЕ.</p>
+                    </div>
+                    <div class="mt-4 bg-indigo-900/60 p-2 rounded-xl text-xs text-amber-200 font-semibold">
+                        Примеры: неправда (= ложь), неприятель (= враг).
+                    </div>
+                </div>
+
+                <div class="bg-indigo-950/90 border border-indigo-500/30 rounded-2xl p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="text-amber-400 font-bold text-lg mb-2">Правило 3</div>
+                        <p class="text-indigo-100 text-sm">НЕ пишется <strong class="text-teal-300">раздельно</strong>, если есть противопоставление с союзом А.</p>
+                    </div>
+                    <div class="mt-4 bg-indigo-900/60 p-2 rounded-xl text-xs text-amber-200 font-semibold">
+                        Примеры: не друг, а враг; не правда, а ложь.
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="finishStage1()" class="title-font px-6 py-3 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-indigo-950 font-extrabold text-lg rounded-2xl shadow-xl transition transform hover:scale-105 flex items-center space-x-2">
+                    <span>Начать испытание ➔</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 2: SLITNO OR RAZDELNO (90s) ================= -->
+        <section id="screen-stage2" class="w-full bg-slate-900/80 border-2 border-indigo-500/50 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl hidden flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <span class="bg-indigo-950 text-indigo-300 border border-indigo-500/40 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Этап 2 из 4</span>
+                    <h3 class="title-font text-2xl font-bold text-amber-300 mt-2">«Слитно или раздельно?»</h3>
+                </div>
+                <div class="bg-indigo-950/80 border border-indigo-500/40 px-3 py-1.5 rounded-xl text-sm font-bold text-amber-200">
+                    ⏱️ <span id="stage2-timer">90</span> сек
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="w-full bg-indigo-950 rounded-full h-2.5 mb-6 overflow-hidden border border-indigo-500/30">
+                <div id="stage2-progress" class="bg-gradient-to-r from-teal-400 to-emerald-400 h-2.5 transition-all duration-300" style="width: 16.6%;"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-indigo-950/90 border border-indigo-500/40 rounded-2xl p-6 md:p-8 mb-6 text-center shadow-lg">
+                <div id="stage2-sentence" class="title-font text-xl md:text-2xl font-bold text-white mb-4">
+                    Загрузка предложения...
+                </div>
+                <div id="stage2-feedback" class="text-sm font-semibold h-8 mb-4 text-teal-300 transition-opacity"></div>
+
+                <div id="stage2-buttons" class="flex justify-center space-x-4">
+                    <button onclick="answerStage2('слитно')" class="title-font px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-lg rounded-2xl shadow-lg transition transform hover:scale-105 border border-indigo-400">
+                        СЛИТНО
+                    </button>
+                    <button onclick="answerStage2('раздельно')" class="title-font px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-lg rounded-2xl shadow-lg transition transform hover:scale-105 border border-purple-400">
+                        РАЗДЕЛЬНО
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center text-xs text-indigo-300">
+                <span>Вопрос <span id="stage2-current-q">1</span> из 6</span>
+                <span id="stage2-helper" class="italic">«Отлично! Правило усвоено!»</span>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 3: ORTHOGRAPHIC DETECTIVE (90s) ================= -->
+        <section id="screen-stage3" class="w-full bg-slate-900/80 border-2 border-indigo-500/50 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl hidden flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <span class="bg-indigo-950 text-indigo-300 border border-indigo-500/40 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Этап 3 из 4</span>
+                    <h3 class="title-font text-2xl font-bold text-amber-300 mt-2">🔎 «Орфографический детектив»</h3>
+                </div>
+                <div class="bg-indigo-950/80 border border-indigo-500/40 px-3 py-1.5 rounded-xl text-sm font-bold text-amber-200">
+                    ⏱️ <span id="stage3-timer">90</span> сек
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="w-full bg-indigo-950 rounded-full h-2.5 mb-6 overflow-hidden border border-indigo-500/30">
+                <div id="stage3-progress" class="bg-gradient-to-r from-teal-400 to-emerald-400 h-2.5 transition-all duration-300" style="width: 20%;"></div>
+            </div>
+
+            <!-- Detective Card with Magnifier effect -->
+            <div class="bg-indigo-950/90 border border-indigo-500/40 rounded-2xl p-6 md:p-8 mb-6 text-center shadow-lg magnifier-lens">
+                <div class="text-xs uppercase tracking-widest text-amber-400 mb-2 font-bold">Проверь лупой! Есть ли ошибка?</div>
+                <div id="stage3-sentence" class="title-font text-xl md:text-2xl font-bold text-white mb-4">
+                    Загрузка предложения...
+                </div>
+                <div id="stage3-feedback" class="text-sm font-semibold h-8 mb-4 text-teal-300"></div>
+
+                <div id="stage3-buttons" class="flex justify-center space-x-4">
+                    <button onclick="answerStage3('ошибка')" class="title-font px-6 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-md rounded-2xl shadow-lg transition transform hover:scale-105 border border-rose-400 flex items-center space-x-2">
+                        <span>❌ Есть ошибка</span>
+                    </button>
+                    <button onclick="answerStage3('нет')" class="title-font px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-md rounded-2xl shadow-lg transition transform hover:scale-105 border border-emerald-400 flex items-center space-x-2">
+                        <span>✅ Ошибки нет</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center text-xs text-indigo-300">
+                <span>Вопрос <span id="stage3-current-q">1</span> из 5</span>
+                <span class="italic">«Молодец! Ты настоящий знаток орфографии!»</span>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 4: FINAL BATTLE WITH PEREPUTAYKA (70s) ================= -->
+        <section id="screen-stage4" class="w-full bg-slate-900/80 border-2 border-indigo-500/50 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl hidden flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <span class="bg-indigo-950 text-indigo-300 border border-indigo-500/40 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Этап 4 из 4</span>
+                    <h3 class="title-font text-2xl font-bold text-amber-300 mt-2">⚔️ «Финальная битва с Перепутайкой»</h3>
+                </div>
+                <div class="bg-indigo-950/80 border border-indigo-500/40 px-3 py-1.5 rounded-xl text-sm font-bold text-amber-200">
+                    ⏱️ <span id="stage4-timer">70</span> сек
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="w-full bg-indigo-950 rounded-full h-2.5 mb-6 overflow-hidden border border-indigo-500/30">
+                <div id="stage4-progress" class="bg-gradient-to-r from-amber-400 to-orange-400 h-2.5 transition-all duration-300" style="width: 20%;"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-indigo-950/90 border border-indigo-500/40 rounded-2xl p-6 md:p-8 mb-6 shadow-lg">
+                <div id="stage4-question" class="title-font text-lg md:text-xl font-bold text-white mb-6 text-center">
+                    Вопрос загружается...
+                </div>
+
+                <div id="stage4-options" class="flex flex-col space-y-3">
+                    <!-- Options injected dynamically -->
+                </div>
+                <div id="stage4-feedback" class="text-sm font-semibold h-6 mt-4 text-center text-teal-300"></div>
+            </div>
+
+            <div class="flex justify-between items-center text-xs text-indigo-300">
+                <span>Вопрос <span id="stage4-current-q">1</span> из 5</span>
+                <span class="italic">«Победим злого волшебника!»</span>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 5: FINAL RESULTS (20s) ================= -->
+        <section id="screen-stage5" class="w-full bg-slate-900/85 border-2 border-amber-500/60 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl hidden flex flex-col items-center text-center relative overflow-hidden">
+            <!-- Confetti Container -->
+            <div id="confetti-container" class="absolute inset-0 pointer-events-none"></div>
+
+            <div class="w-20 h-20 bg-gradient-to-tr from-amber-400 to-yellow-500 rounded-3xl flex items-center justify-center text-4xl shadow-xl glow-effect mb-4 z-10">
+                🏆
+            </div>
+
+            <h2 class="title-font text-3xl md:text-4xl font-extrabold text-amber-300 mb-2 z-10">
+                Миссия выполнена!
+            </h2>
+            <p id="final-subtitle" class="text-indigo-200 text-sm md:text-base mb-6 z-10">
+                Страна Орфографии спасена от чар Перепутайки!
+            </p>
+
+            <!-- Results Summary Card -->
+            <div class="bg-indigo-950/90 border border-indigo-500/40 rounded-2xl p-6 w-full max-w-md mb-6 shadow-lg z-10 grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <div class="text-xs text-indigo-300 font-bold uppercase">Правильных</div>
+                    <div id="final-correct" class="title-font text-2xl font-extrabold text-teal-300 mt-1">0/16</div>
+                </div>
+                <div>
+                    <div class="text-xs text-indigo-300 font-bold uppercase">Баллы</div>
+                    <div id="final-score" class="title-font text-2xl font-extrabold text-amber-300 mt-1">0</div>
+                </div>
+                <div>
+                    <div class="text-xs text-indigo-300 font-bold uppercase">Успех</div>
+                    <div id="final-percent" class="title-font text-2xl font-extrabold text-purple-300 mt-1">0%</div>
+                </div>
+            </div>
+
+            <!-- Achievement Rank Title -->
+            <div class="bg-gradient-to-r from-indigo-900 to-purple-900 border border-amber-500/50 rounded-2xl px-6 py-4 mb-6 w-full max-w-md shadow-lg z-10">
+                <div class="text-xs uppercase text-amber-300 font-bold tracking-wider">Твое звание:</div>
+                <div id="final-rank" class="title-font text-xl md:text-2xl font-extrabold text-white mt-1">Мастер орфографии!</div>
+            </div>
+
+            <!-- Keys Collection Display -->
+            <div class="flex justify-center space-x-6 mb-8 z-10">
+                <div class="flex flex-col items-center">
+                    <div class="text-3xl filter drop-shadow-[0_0_10px_rgba(234,179,8,0.8)]">🔑</div>
+                    <span class="text-[10px] text-amber-300 font-bold mt-1">Ключ №1</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-3xl filter drop-shadow-[0_0_10px_rgba(234,179,8,0.8)]">🔑</div>
+                    <span class="text-[10px] text-amber-300 font-bold mt-1">Ключ №2</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="text-3xl filter drop-shadow-[0_0_10px_rgba(234,179,8,0.8)]">🔑</div>
+                    <span class="text-[10px] text-amber-300 font-bold mt-1">Ключ №3</span>
+                </div>
+            </div>
+
+            <button onclick="restartGame()" class="title-font px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-indigo-950 font-extrabold text-lg rounded-2xl shadow-xl transition transform hover:scale-105 z-10 glow-effect">
+                🔄 Играть снова
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Footer / Credits -->
+    <footer class="w-full text-center py-4 text-xs text-indigo-400/80 z-10">
+        Урок русского языка в 5 классе • Создано для интерактивной доски
+    </footer>
+
+    <!-- JavaScript Game Logic & Web Audio API -->
+    <script>
+        // --- SOUND SYSTEM (Web Audio API) ---
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'incorrect') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.linearRampToValueAtTime(130, now + 0.25);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'victory') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(freq, now + i * 0.12);
+                        g.gain.setValueAtTime(0.15, now + i * 0.12);
+                        g.gain.linearRampToValueAtTime(0.01, now + i * 0.12 + 0.3);
+                        o.start(now + i * 0.12);
+                        o.stop(now + i * 0.12 + 0.3);
+                    });
+                }
+            } catch (e) {
+                console.log("Audio play error:", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
+            playSound('click');
+        }
+
+        // --- FULLSCREEN TOGGLE ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Error attempting to enable fullscreen:", err);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // --- BACKGROUND PARTICLES GENERATION ---
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            const icons = ['✨', '⭐', '🌟', '🔹', '📜', '🗝️'];
+            for (let i = 0; i < 20; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.textContent = icons[Math.floor(Math.random() * icons.length)];
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.fontSize = (Math.random() * 16 + 12) + 'px';
+                p.style.animationDuration = (Math.random() * 5 + 4) + 's';
+                p.style.animationDelay = (Math.random() * 5) + 's';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        // --- GAME STATE & TIMERS ---
+        let globalTimeRemaining = 300; // 5 minutes total
+        let globalTimerInterval = null;
+        let currentStage = 0; // 0:welcome, 1:stage1, 2:stage2, 3:stage3, 4:stage4, 5:stage5
+        let score = 0;
+        let correctAnswersCount = 0;
+        let totalQuestionsCount = 16; // 6 (stage2) + 5 (stage3) + 5 (stage4)
+
+        // Stage-specific timer intervals
+        let stageTimerInterval = null;
+        let stageTimeRemaining = 0;
+
+        function startGlobalTimer() {
+            document.getElementById('timer-box').classList.remove('hidden');
+            document.getElementById('score-box').classList.remove('hidden');
+            globalTimerInterval = setInterval(() => {
+                globalTimeRemaining--;
+                updateGlobalTimerDisplay();
+                if (globalTimeRemaining <= 0) {
+                    clearInterval(globalTimerInterval);
+                    if (stageTimerInterval) clearInterval(stageTimerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateGlobalTimerDisplay() {
+            const mins = Math.floor(globalTimeRemaining / 60);
+            const secs = globalTimeRemaining % 60;
+            document.getElementById('global-timer').textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function startStageTimer(seconds, onExpire) {
+            stageTimeRemaining = seconds;
+            updateStageTimerDisplay();
+            if (stageTimerInterval) clearInterval(stageTimerInterval);
+
+            stageTimerInterval = setInterval(() => {
+                stageTimeRemaining--;
+                updateStageTimerDisplay();
+                if (stageTimeRemaining <= 0) {
+                    clearInterval(stageTimerInterval);
+                    onExpire();
+                }
+            }, 1000);
+        }
+
+        function updateStageTimerDisplay() {
+            const el = document.getElementById(`stage${currentStage}-timer`);
+            if (el) el.textContent = stageTimeRemaining;
+        }
+
+        // --- GAME FLOW CONTROL ---
+        function startGame() {
+            playSound('click');
+            document.getElementById('screen-welcome').classList.add('hidden');
+            startGlobalTimer();
+            startStage1();
+        }
+
+        function showScreen(stageNum) {
+            currentStage = stageNum;
+            for (let i = 1; i <= 5; i++) {
+                const s = document.getElementById(`screen-stage${i}`);
+                if (s) s.classList.add('hidden');
+            }
+            const activeS = document.getElementById(`screen-stage${stageNum}`);
+            if (activeS) activeS.classList.remove('hidden');
+        }
+
+        // --- STAGE 1: REMEMBER THE RULE (30s) ---
+        function startStage1() {
+            showScreen(1);
+            startStage30Timer(30, () => {
+                finishStage1();
+            });
+        }
+
+        function startStage30Timer(seconds, callback) {
+            stageTimeRemaining = seconds;
+            updateStage1TimerDisplay();
+            if (stageTimerInterval) clearInterval(stageTimerInterval);
+            stageTimerInterval = setInterval(() => {
+                stageTimeRemaining--;
+                updateStage1TimerDisplay();
+                if (stageTimeRemaining <= 0) {
+                    clearInterval(stageTimerInterval);
+                    callback();
+                }
+            }, 1000);
+        }
+
+        function updateStage1TimerDisplay() {
+            const el = document.getElementById('stage1-timer');
+            if (el) el.textContent = stageTimeRemaining;
+        }
+
+        function finishStage1() {
+            playSound('click');
+            if (stageTimerInterval) clearInterval(stageTimerInterval);
+            startStage2();
+        }
+
+        // --- STAGE 2: SLITNO OR RAZDELNO (90s) ---
+        let stage2Data = [
+            { sentence: "На улице началось (не)настье.", answer: "слитно", explanation: "Слово без НЕ не употребляется." },
+            { sentence: "Мальчик сказал (не)правду.", answer: "слитно", explanation: "Можно заменить синонимом без НЕ (ложь)." },
+            { sentence: "Это (не)друг, а враг.", answer: "раздельно", explanation: "Есть противопоставление с союзом А." },
+            { sentence: "(Не)вежда не знает правил поведения.", answer: "слитно", explanation: "Слово без НЕ не употребляется." },
+            { sentence: "Его охватила (не)радость, а грусть.", answer: "раздельно", explanation: "Есть противопоставление с союзом А." },
+            { sentence: "К крепости приблизился (не)приятель.", answer: "слитно", explanation: "Можно заменить синонимом без НЕ (враг)." }
+        ];
+        let stage2Index = 0;
+
+        function startStage2() {
+            showScreen(2);
+            stage2Index = 0;
+            loadStage2Question();
+            startStageTimer(90, () => {
+                // Time expired for stage 2, advance to stage 3
+                startStage3();
+            });
+        }
+
+        function loadStage2Question() {
+            if (stage2Index >= stage2Data.length) {
+                if (stageTimerInterval) clearInterval(stageTimerInterval);
+                playSound('victory');
+                startStage3();
+                return;
+            }
+            const q = stage2Data[stage2Index];
+            document.getElementById('stage2-sentence').textContent = q.sentence;
+            document.getElementById('stage2-current-q').textContent = stage2Index + 1;
+            document.getElementById('stage2-feedback').textContent = '';
+            document.getElementById('stage2-progress').style.width = `${((stage2Index + 1) / stage2Data.length) * 100}%`;
+            
+            // Enable buttons
+            setStage2ButtonsEnabled(true);
+        }
+
+        function setStage2ButtonsEnabled(enabled) {
+            const btns = document.querySelectorAll('#screen-stage2 button');
+            btns.forEach(b => b.disabled = !enabled);
+        }
+
+        function answerStage2(choice) {
+            setStage2ButtonsEnabled(false);
+            const q = stage2Data[stage2Index];
+            const feedbackEl = document.getElementById('stage2-feedback');
+
+            if (choice === q.answer) {
+                playSound('correct');
+                score += 10;
+                correctAnswersCount++;
+                document.getElementById('score-display').textContent = score;
+                feedbackEl.innerHTML = `<span class="text-emerald-400 font-bold">✨ Верно!</span> ${q.explanation}`;
+            } else {
+                playSound('incorrect');
+                feedbackEl.innerHTML = `<span class="text-rose-400 font-bold">❌ Ошибка!</span> Правильно: <span class="text-amber-300 uppercase">${q.answer}</span>. ${q.explanation}`;
+            }
+
+            stage2Index++;
+            setTimeout(() => {
+                loadStage2Question();
+            }, 2000);
+        }
+
+        // --- STAGE 3: ORTHOGRAPHIC DETECTIVE (90s) ---
+        let stage3Data = [
+            { sentence: "Его постигло не счастье, а беда.", answer: "нет", explanation: "Ошибки нет: есть противопоставление с союзом А, пишется раздельно." },
+            { sentence: "Нас застало не настье.", answer: "ошибка", explanation: "Ошибка! Слово «ненастье» пишется слитно, так как без НЕ не употребляется." },
+            { sentence: "Это был не друг, а враг.", answer: "нет", explanation: "Ошибки нет: есть противопоставление, пишется раздельно." },
+            { sentence: "Неприятель подошёл к крепости.", answer: "нет", explanation: "Ошибки нет: слово можно заменить синонимом (враг), пишется слитно." },
+            { sentence: "Он совершил не лепость.", answer: "ошибка", explanation: "Ошибка! «Нелепость» пишется слитно, без НЕ не употребляется." }
+        ];
+        let stage3Index = 0;
+
+        function startStage3() {
+            if (stageTimerInterval) clearInterval(stageTimerInterval);
+            showScreen(3);
+            stage3Index = 0;
+            loadStage3Question();
+            startStageTimer(90, () => {
+                startStage4();
+            });
+        }
+
+        function loadStage3Question() {
+            if (stage3Index >= stage3Data.length) {
+                if (stageTimerInterval) clearInterval(stageTimerInterval);
+                playSound('victory');
+                startStage4();
+                return;
+            }
+            const q = stage3Data[stage3Index];
+            document.getElementById('stage3-sentence').textContent = q.sentence;
+            document.getElementById('stage3-current-q').textContent = stage3Index + 1;
+            document.getElementById('stage3-feedback').textContent = '';
+            document.getElementById('stage3-progress').style.width = `${((stage3Index + 1) / stage3Data.length) * 100}%`;
+            setStage3ButtonsEnabled(true);
+        }
+
+        function setStage3ButtonsEnabled(enabled) {
+            const btns = document.querySelectorAll('#screen-stage3 button');
+            btns.forEach(b => b.disabled = !enabled);
+        }
+
+        function answerStage3(choice) {
+            setStage3ButtonsEnabled(false);
+            const q = stage3Data[stage3Index];
+            const feedbackEl = document.getElementById('stage3-feedback');
+
+            if (choice === q.answer) {
+                playSound('correct');
+                score += 10;
+                correctAnswersCount++;
+                document.getElementById('score-display').textContent = score;
+                feedbackEl.innerHTML = `<span class="text-emerald-400 font-bold">✨ Отлично!</span> ${q.explanation}`;
+            } else {
+                playSound('incorrect');
+                feedbackEl.innerHTML = `<span class="text-rose-400 font-bold">❌ Ошибка!</span> ${q.explanation}`;
+            }
+
+            stage3Index++;
+            setTimeout(() => {
+                loadStage3Question();
+            }, 2200);
+        }
+
+        // --- STAGE 4: FINAL BATTLE (70s) ---
+        let stage4Data = [
+            {
+                question: "В каком слове НЕ пишется слитно?",
+                options: ["А) не друг, а враг", "Б) ненависть", "В) не радость, a грусть"],
+                correct: 1, // index of option B
+                explanation: "Слово «ненависть» без НЕ не употребляется."
+            },
+            {
+                question: "Почему слово «невежда» пишется слитно?",
+                options: ["А) Есть противопоставление", "Б) Можно убрать НЕ", "В) Без НЕ слово не употребляется"],
+                correct: 2,
+                explanation: "Слово «невежда» без НЕ не употребляется в данном значении."
+            },
+            {
+                question: "Выбери правильное написание.",
+                options: ["А) Не правда, а ложь", "Б) Неправда, а ложь", "В) Неправда а ложь"],
+                correct: 0,
+                explanation: "При наличии противопоставления с союзом А пишется раздельно: не правда, а ложь."
+            },
+            {
+                question: "В каком предложении НЕ пишется слитно?",
+                options: ["А) Это не счастье, а беда.", "Б) Неприятель приближался.", "В) Он не врач, а учитель."],
+                correct: 1,
+                explanation: "«Неприятель» пишется слитно (синоним — враг)."
+            },
+            {
+                question: "Когда НЕ с существительными пишется раздельно?",
+                options: ["А) Когда слово без НЕ не употребляется", "Б) Когда есть противопоставление с союзом А", "В) Когда можно заменить синонимом без НЕ"],
+                correct: 1,
+                explanation: "Противопоставление с союзом А требует раздельного написания."
+            }
+        ];
+        let stage4Index = 0;
+
+        function startStage4() {
+            if (stageTimerInterval) clearInterval(stageTimerInterval);
+            showScreen(4);
+            stage4Index = 0;
+            loadStage4Question();
+            startStageTimer(70, () => {
+                endGame();
+            });
+        }
+
+        function loadStage4Question() {
+            if (stage4Index >= stage4Data.length) {
+                if (stageTimerInterval) clearInterval(stageTimerInterval);
+                playSound('victory');
+                endGame();
+                return;
+            }
+            const q = stage4Data[stage4Index];
+            document.getElementById('stage4-question').textContent = q.question;
+            document.getElementById('stage4-current-q').textContent = stage4Index + 1;
+            document.getElementById('stage4-feedback').textContent = '';
+            document.getElementById('stage4-progress').style.width = `${((stage4Index + 1) / stage4Data.length) * 100}%`;
+
+            const optionsContainer = document.getElementById('stage4-options');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "title-font text-left px-5 py-3.5 bg-indigo-900/80 hover:bg-indigo-800 text-white font-semibold text-sm md:text-base rounded-2xl shadow transition transform hover:scale-[1.01] border border-indigo-500/40";
+                btn.textContent = opt;
+                btn.onclick = () => answerStage4(idx);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function answerStage4(choiceIdx) {
+            // Disable all option buttons
+            const btns = document.querySelectorAll('#screen-stage4 #stage4-options button');
+            btns.forEach(b => b.disabled = true);
+
+            const q = stage4Data[stage4Index];
+            const feedbackEl = document.getElementById('stage4-feedback');
+
+            if (choiceIdx === q.correct) {
+                playSound('correct');
+                score += 10;
+                correctAnswersCount++;
+                document.getElementById('score-display').textContent = score;
+                btns[choiceIdx].classList.remove('bg-indigo-900/80', 'hover:bg-indigo-800');
+                btns[choiceIdx].classList.add('bg-emerald-700', 'border-emerald-400');
+                feedbackEl.innerHTML = `<span class="text-emerald-400 font-bold">✨ Правильно!</span> ${q.explanation}`;
+            } else {
+                playSound('incorrect');
+                btns[choiceIdx].classList.remove('bg-indigo-900/80', 'hover:bg-indigo-800');
+                btns[choiceIdx].classList.add('bg-rose-700', 'border-rose-400');
+                btns[q.correct].classList.remove('bg-indigo-900/80', 'hover:bg-indigo-800');
+                btns[q.correct].classList.add('bg-emerald-700', 'border-emerald-400');
+                feedbackEl.innerHTML = `<span class="text-rose-400 font-bold">❌ Ошибка!</span> ${q.explanation}`;
+            }
+
+            stage4Index++;
+            setTimeout(() => {
+                loadStage4Question();
+            }, 2500);
+        }
+
+        // --- END GAME & RESULTS (Stage 5) ---
+        function endGame() {
+            if (globalTimerInterval) clearInterval(globalTimerInterval);
+            if (stageTimerInterval) clearInterval(stageTimerInterval);
+            showScreen(5);
+            playSound('victory');
+            triggerConfetti();
+
+            // Populate results
+            document.getElementById('final-correct').textContent = `${correctAnswersCount}/${totalQuestionsCount}`;
+            document.getElementById('final-score').textContent = score;
+            
+            const percent = Math.round((correctAnswersCount / totalQuestionsCount) * 100);
+            document.getElementById('final-percent').textContent = `${percent}%`;
+
+            let rank = "Продолжай тренироваться!";
+            if (percent >= 90) {
+                rank = "⭐ Мастер орфографии!";
+            } else if (percent >= 70) {
+                rank = "🌟 Знаток правил!";
+            } else if (percent >= 50) {
+                rank = "🔹 Юный исследователь!";
+            }
+            document.getElementById('final-rank').textContent = rank;
+        }
+
+        function triggerConfetti() {
+            const container = document.getElementById('confetti-container');
+            container.innerHTML = '';
+            const colors = ['#f59e0b', '#10b981', '#6366f1', '#ec4899', '#3b82f6'];
+            for (let i = 0; i < 50; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + '%';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDelay = (Math.random() * 2) + 's';
+                conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                container.appendChild(conf);
+            }
+        }
+
+        function restartGame() {
+            playSound('click');
+            globalTimeRemaining = 300;
+            score = 0;
+            correctAnswersCount = 0;
+            document.getElementById('score-display').textContent = '0';
+            document.getElementById('timer-box').classList.add('hidden');
+            document.getElementById('score-box').classList.add('hidden');
+            showScreen(0);
+        }
+    </script>
+</body>
+</html>
